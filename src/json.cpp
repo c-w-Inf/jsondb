@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <cmath>
+#include <iomanip>
 
 #include "quoted.h"
 
@@ -15,9 +16,9 @@ std::ostream& operator<< (std::ostream& os, const number& n) {
         if (std::isnan (d) || std::isinf (d)) {
             os << "null";
         } else {
-            bool not_shown = os.flags () & std::ios_base::showpoint;
-            os << std::showpoint << d;
-            if (not_shown) os << std::noshowpoint;
+            auto org_flag = os.flags () & (std::ios_base::showpoint | std::ios_base::floatfield);
+            os << std::showpoint << std::defaultfloat << d;
+            os.setf (org_flag);
         }
     }
 
@@ -80,7 +81,8 @@ std::istream& operator>> (std::istream& is, number& n) {
     return is;
 }
 
-std::ostream& operator<< (std::ostream& os, const json& j) {
+namespace {
+void print_json (std::ostream& os, const json& j, size_t w, size_t d = 0) {
     switch (j.get_type ()) {
         case t_obj: {
             os << '{';
@@ -88,9 +90,21 @@ std::ostream& operator<< (std::ostream& os, const json& j) {
             size_t i = 0;
             for (const auto& [key, value] : j.get_object ()) {
                 if (i++) os << ',';
-                os << quoted (key) << ':' << value;
+                if (os.fill () == '\n') {
+                    os << '\n';
+                    for (size_t i = 0; i < w * (d + 1); ++i) os << ' ';
+                }
+
+                os << quoted (key) << ':';
+                if (os.fill () == '\n') os << ' ';
+
+                print_json (os, value, w, d + 1);
             }
 
+            if (os.fill () == '\n') {
+                os << '\n';
+                for (size_t i = 0; i < w * d; ++i) os << ' ';
+            }
             os << '}';
         } break;
 
@@ -100,9 +114,18 @@ std::ostream& operator<< (std::ostream& os, const json& j) {
             size_t i = 0;
             for (const auto& value : j.get_array ()) {
                 if (i++) os << ',';
-                os << value;
+                if (os.fill () == '\n') {
+                    os << '\n';
+                    for (size_t i = 0; i < w * (d + 1); ++i) os << ' ';
+                }
+
+                print_json (os, value, w, d + 1);
             }
 
+            if (os.fill () == '\n') {
+                os << '\n';
+                for (size_t i = 0; i < w * d; ++i) os << ' ';
+            }
             os << ']';
         } break;
 
@@ -122,7 +145,12 @@ std::ostream& operator<< (std::ostream& os, const json& j) {
             os << "null";
         } break;
     }
-
+}
+}  // namespace
+std::ostream& operator<< (std::ostream& os, const json& j) {
+    size_t w = os.width ();
+    os << std::setw (0);
+    print_json (os, j, w);
     return os;
 }
 

@@ -41,7 +41,7 @@ typedef std::string string;
 typedef std::monostate null_type;
 constexpr null_type null;
 
-struct json;
+class json;
 
 typedef std::map<std::string, json> object;
 typedef std::vector<json> array;
@@ -50,7 +50,7 @@ class json {
     std::variant<object, array, string, number, bool, null_type> v;
 
  public:
-    json (): v (std::monostate ()) {}
+    json (): v (null) {}
 
     json (const object& v): v (v) {}         // NOLINT(runtime/explicit)
     json (object&& v): v (std::move (v)) {}  // NOLINT(runtime/explicit)
@@ -71,10 +71,10 @@ class json {
 
     json (bool v): v (v) {}  // NOLINT(runtime/explicit)
 
+    json (null_type): v (null) {}  // NOLINT(runtime/explicit)
+
     json (const json&) = default;
     json (json&& o): v (std::move (o.v)) { o.v = null; }
-
-    json (null_type): v (std::monostate ()) {}  // NOLINT(runtime/explicit)
 
     json& operator= (const json&) = default;
     json& operator= (json&& o) {
