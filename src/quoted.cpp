@@ -115,6 +115,8 @@ std::istream& operator>> (std::istream& is, const quoted_string& s) {
             } break;
             default: {
                 if (is.eof ()) throw std::invalid_argument ("format error, unexpected eof");
+                if (0 <= c && c < 0x20 || c == 0x7f)
+                    throw std::invalid_argument ("format error, unexpected " + std::to_string (c));
                 s.s += c;
             }
         }
