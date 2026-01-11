@@ -9,6 +9,7 @@ class quoted_const_string {
 
  public:
     explicit quoted_const_string (const std::string& s): s (s) {}
+    explicit quoted_const_string (std::string&& s): s (std::move (s)) {}
 
     friend std::ostream& operator<< (std::ostream&, const quoted_const_string&);
 };
@@ -33,6 +34,7 @@ class fixed_string {
 
  public:
     explicit fixed_string (const std::string& s): s (s) {}
+    explicit fixed_string (std::string&& s): s (std::move (s)) {}
 
     friend std::istream& operator>> (std::istream&, const fixed_string&);
 };
