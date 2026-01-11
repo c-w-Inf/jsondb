@@ -35,7 +35,7 @@ std::ostream& operator<< (std::ostream& os, const quoted_const_string& s) {
                 os << "\\t";
             } break;
             default: {
-                if (c <= 0x1F)
+                if (0 <= c && c < 0x20 || c == 0x7f)
                     os << "\\u" << std::setw (4) << static_cast<int> (c);
                 else
                     os << c;
@@ -88,11 +88,13 @@ std::istream& operator>> (std::istream& is, const quoted_string& s) {
                                 cp = cp * 0x10 + c - '0';
                             } else if ('a' <= c && c <= 'f') {
                                 cp = cp * 0x10 + c - 'a' + 0xa;
+                            } else if ('A' <= c && c <= 'F') {
+                                cp = cp * 0x10 + c - 'A' + 0xa;
                             } else {
                                 if (is.eof ())
                                     throw std::invalid_argument ("format error, unexpected eof");
                                 else
-                                    throw std::invalid_argument ("format error, expecting number");
+                                    throw std::invalid_argument ("format error, expecting hex number");
                             }
                         }
 
