@@ -5,9 +5,6 @@
 namespace jsondb {
 
 option::option (int argc, char** argv) {
-    host = "0.0.0.0";
-    port = 10954;
-
     for (int i = 1; i < argc; ++i) {
         if (argv[i] == std::string ("-p") || argv[i] == std::string ("--port")) {
             if (i + 1 == argc) {
@@ -23,6 +20,8 @@ option::option (int argc, char** argv) {
                 throw std::invalid_argument ("a string must be designated for --host (-h)");
             }
             host = argv[i + 1];
+        } else if (argv[i] == std::string ("-v") || argv[i] == std::string ("--verbose")) {
+            verbose = true;
         } else {
             throw std::invalid_argument ("unknown option");
         }

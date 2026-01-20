@@ -9,12 +9,22 @@ int main (int argc, char** argv) {
         jsondb::option opt (argc, argv);
 
         httplib::Server server;
+
+        server.set_pre_routing_handler ([opt] (const httplib::Request& req, httplib::Response) {
+            if (opt.verbose) {
+                const auto& cip = req.remote_addr;
+                std::cout << cip << std::string (16 - cip.length (), ' ') << req.path << std::endl;
+            }
+
+            return httplib::Server::HandlerResponse::Unhandled;
+        });
+
         server.Get ("/ver", [] (const httplib::Request& req, httplib::Response& res) {
-            std::string client_ip = req.remote_addr;
-
             res.set_content ("0.0.1", "text/plain");
+        });
 
-            std::cout << client_ip << std::string (16 - client_ip.length (), ' ') << req.path << std::endl;
+        server.Get ("/body", [] (const httplib::Request& req, httplib::Response& res) {
+            res.set_content ("{}", "application/json");
         });
 
         std::cout << "jsondb listening on " << opt.host << ':' << opt.port << std::endl;
